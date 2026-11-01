@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Firmware: Build",
+      "type": "process",
+      "command": "${userHome}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "-e", "esp07"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Firmware: Upload USB-TTL",
+      "type": "process",
+      "command": "${userHome}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "-e", "esp07", "-t", "upload", "--upload-port", "${input:serialPort}"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Firmware: Upload Wi-Fi OTA",
+      "type": "process",
+      "command": "${userHome}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "-e", "esp07_ota", "-t", "upload", "--upload-port", "${input:otaHost}"],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "WIFI_LED_OTA_PASSWORD": "${input:otaPassword}" }
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ],
+  "inputs": [
+    { "id": "serialPort", "type": "promptString", "description": "USB-TTL COM port", "default": "COM4" },
+    { "id": "otaHost", "type": "promptString", "description": "Controller IP or hostname", "default": "192.168.3.35" },
+    { "id": "otaPassword", "type": "promptString", "description": "OTA password (default: wifi-led-controller)", "password": true }
+  ]
+}

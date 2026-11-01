@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f5f2" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="WiFiLedController" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Подсветка · WiFiLedController</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/md5.js" defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">К управлению</a>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="#light"
+          ><span class="brand-mark" aria-hidden="true">◒</span
+          ><span
+            >WiFiLedController<span class="brand-caption"
+              >Контроллер подсветки</span
+            ></span
+          ></a
+        >
+        <nav aria-label="Разделы">
+          <a href="#light">Управление светом <span>01</span></a
+          ><a href="#automation">Автоматизация <span>02</span></a
+          ><a href="#wifi">Подключение Wi-Fi <span>03</span></a
+          ><a href="#firmware">Прошивка <span>04</span></a>
+          <a href="#system">Система <span>05</span></a>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="tiny-dot"></span> Локальное управление<br /><span
+            >ESP8266 · ESP-07</span
+          >
+        </div>
+      </aside>
+      <main id="main">
+        <header class="page-header">
+          <div>
+            <h1>Подсветка</h1>
+          </div>
+          <div class="header-tools">
+            <div class="connection-status">
+              <span id="connection" class="badge">Подключение…</span
+              ><span id="signal" class="badge" hidden></span>
+            </div>
+            <label class="theme-control"
+              ><span class="sr-only">Оформление</span
+              ><select id="theme" aria-label="Оформление">
+                <option value="system">Системная тема</option>
+                <option value="light">Светлая тема</option>
+                <option value="dark">Тёмная тема</option>
+              </select></label
+            >
+          </div>
+        </header>
+        <div
+          id="notice"
+          class="notice"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+        <noscript
+          ><div class="notice">
+            Для управления включите JavaScript в браузере.
+          </div></noscript
+        >
+        <section id="light" class="card hero" aria-labelledby="light-title">
+          <div class="hero-top">
+            <div>
+              <p class="eyebrow">СОСТОЯНИЕ ПОДСВЕТКИ</p>
+              <h2 id="light-title">Получаем состояние…</h2>
+              <p id="light-detail" class="muted">Подключаемся к контроллеру</p>
+            </div>
+            <button
+              id="power"
+              class="power"
+              type="button"
+              disabled
+              aria-label="Включить подсветку"
+              aria-pressed="false"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                aria-hidden="true"
+              >
+                <path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0" /></svg
+              ><span id="power-label">Включить</span>
+            </button>
+          </div>
+          <div class="mode-row">
+            <span class="label">Режим работы</span>
+            <fieldset id="mode-picker" class="segmented" disabled>
+              <legend class="sr-only">Режим работы</legend>
+              <label
+                ><input type="radio" name="mode" value="auto" /><span
+                  >Автоматический</span
+                ></label
+              ><label
+                ><input type="radio" name="mode" value="manual" /><span
+                  >Ручной</span
+                ></label
+              >
+            </fieldset>
+          </div>
+          <p class="hint">
+            Кнопка включения и выключения всегда переводит подсветку в ручной
+            режим.
+          </p>
+        </section>
+        <form id="settings-form">
+          <fieldset id="settings-fields" class="plain-fieldset" disabled>
+            <section class="card" aria-labelledby="color-title">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">АТМОСФЕРА</p>
+                  <h2 id="color-title">Цвет и яркость</h2>
+                </div>
+                <span id="color-value" class="mono">#FFB464</span>
+              </div>
+              <div class="color-row">
+                <label class="color-picker"
+                  ><input id="color" type="color" value="#ffb464" /><span
+                    >Свой цвет</span
+                  ></label
+                >
+                <div class="swatches" aria-label="Готовые цвета">
+                  <button
+                    type="button"
+                    data-color="#ffb464"
+                    style="--swatch: #ffb464"
+                    aria-label="Тёплый свет"
+                  ></button
+                  ><button
+                    type="button"
+                    data-color="#ffffff"
+                    style="--swatch: #ffffff"
+                    aria-label="Белый"
+                  ></button
+                  ><button
+                    type="button"
+                    data-color="#ff5555"
+                    style="--swatch: #ff5555"
+                    aria-label="Красный"
+                  ></button
+                  ><button
+                    type="button"
+                    data-color="#61d9a1"
+                    style="--swatch: #61d9a1"
+                    aria-label="Зелёный"
+                  ></button
+                  ><button
+                    type="button"
+                    data-color="#5c9dff"
+                    style="--swatch: #5c9dff"
+                    aria-label="Синий"
+                  ></button
+                  ><button
+                    type="button"
+                    data-color="#b59aff"
+                    style="--swatch: #b59aff"
+                    aria-label="Сиреневый"
+                  ></button>
+                </div>
+              </div>
+              <label class="range-label" for="brightness"
+                >Яркость
+                <output id="brightness-value" for="brightness"
+                  >70 %</output
+                ></label
+              ><input
+                id="brightness"
+                type="range"
+                min="0"
+                max="100"
+                value="70"
+              />
+              <div class="range-captions">
+                <span>0 %</span><span>100 %</span>
+              </div>
+              <div class="divider"></div>
+              <h3>Плавность переходов</h3>
+              <p class="hint">
+                Чем больше время, тем медленнее меняется свет. 0 — мгновенное
+                переключение.
+              </p>
+              <div class="two-columns">
+                <div>
+                  <label class="range-label" for="fade-in"
+                    >Включение <output id="fade-in-value">0,7 с</output></label
+                  ><input
+                    id="fade-in"
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value="700"
+                  />
+                </div>
+                <div>
+                  <label class="range-label" for="fade-out"
+                    >Выключение
+                    <output id="fade-out-value">1,2 с</output></label
+                  ><input
+                    id="fade-out"
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value="1200"
+                  />
+                </div>
+              </div>
+            </section>
+            <section id="automation" class="card" aria-labelledby="auto-title">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">СВЕТ ПО ДВИЖЕНИЮ</p>
+                  <h2 id="auto-title">Автоматизация</h2>
+                </div>
+                <span id="auto-badge" class="badge">—</span>
+              </div>
+              <p class="hint">
+                Любой из двух датчиков включает подсветку. Отсчёт начинается
+                заново, пока датчик видит движение.
+              </p>
+              <div class="setting-row">
+                <div>
+                  <label for="hold">Время после движения</label>
+                  <p class="hint">От 1 секунды до 1 часа</p>
+                </div>
+                <div class="number-unit">
+                  <input
+                    id="hold"
+                    type="number"
+                    min="1"
+                    max="3600"
+                    step="1"
+                    value="30"
+                    required
+                  /><span>сек</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <label for="use-light">Учитывать освещённость</label>
+                  <p class="hint">Включать свет только в темноте</p>
+                </div>
+                <input
+                  id="use-light"
+                  class="switch"
+                  type="checkbox"
+                  role="switch"
+                  checked
+                />
+              </div>
+              <div id="threshold-wrap">
+                <label class="range-label" for="threshold"
+                  >Порог темноты <output id="threshold-value">50</output></label
+                ><input
+                  id="threshold"
+                  type="range"
+                  min="0"
+                  max="1023"
+                  value="50"
+                />
+                <p class="hint">
+                  Свет включится, если показание датчика ниже порога. Это
+                  значение АЦП, не люксы.
+                </p>
+                <button type="button" id="calibrate" class="text-button">
+                  Использовать текущую освещённость + 10
+                </button>
+              </div>
+              <div class="sensor-panel">
+                <div>
+                  <span class="sensor-label">Освещённость</span
+                  ><strong id="ambient">— <small>/ 1023</small></strong>
+                </div>
+                <div>
+                  <span class="sensor-label">Датчик 1</span
+                  ><strong id="motion1">—</strong>
+                </div>
+                <div>
+                  <span class="sensor-label">Датчик 2</span
+                  ><strong id="motion2">—</strong>
+                </div>
+              </div>
+              <p id="warmup" class="hint" hidden></p>
+            </section>
+            <div class="save-bar">
+              <span id="save-status" role="status">Настройки загружаются</span
+              ><button id="save" class="button primary" type="submit">
+                Применить настройки
+              </button>
+            </div>
+          </fieldset>
+        </form>
+        <section id="wifi" class="card" aria-labelledby="wifi-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">ВСЕГДА РЯДОМ</p>
+              <h2 id="wifi-title">Подключение Wi-Fi</h2>
+            </div>
+            <span id="wifi-badge" class="badge">—</span>
+          </div>
+          <div id="setup-info" class="setup-info" hidden></div>
+          <div
+            id="wifi-feedback"
+            class="wifi-feedback"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+            hidden
+          >
+            <strong id="wifi-feedback-title"></strong>
+            <p id="wifi-result"></p>
+            <a id="wifi-open" class="button secondary" hidden
+              >Открыть контроллер в домашней сети</a
+            >
+          </div>
+          <dl class="network-details">
+            <div>
+              <dt>Текущая сеть</dt>
+              <dd id="current-ssid">—</dd>
+            </div>
+            <div>
+              <dt>Адрес контроллера</dt>
+              <dd><a id="device-address">—</a></dd>
+            </div>
+            <div>
+              <dt>Уровень сигнала</dt>
+              <dd id="rssi">—</dd>
+            </div>
+          </dl>
+          <details id="wifi-details">
+            <summary>Настроить подключение</summary>
+            <form id="wifi-form" autocomplete="off" novalidate>
+              <fieldset id="wifi-fields" class="plain-fieldset" disabled>
+                <p class="hint">
+                  Выберите сеть 2,4 ГГц или введите её имя вручную. Прежние
+                  данные сохранятся, если подключение не удастся.
+                </p>
+                <div class="scan-row">
+                  <button type="button" id="scan" class="button secondary">
+                    Найти сети</button
+                  ><span id="scan-status" class="hint" role="status"></span>
+                </div>
+                <label for="networks">Доступные сети</label
+                ><select id="networks">
+                  <option value="">
+                    Выберите сеть или введите ниже
+                  </option></select
+                ><label for="ssid">Имя сети (SSID)</label
+                ><input
+                  enterkeyhint="next"
+                  id="ssid"
+                  type="text"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  maxlength="32"
+                  required
+                /><label for="password">Пароль сети</label
+                ><input
+                  enterkeyhint="done"
+                  id="password"
+                  type="password"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  autocorrect="off"
+                  spellcheck="false"
+                  maxlength="64"
+                  aria-describedby="password-hint"
+                /><label class="checkbox-label"
+                  ><input id="show-password" type="checkbox" /> Показать
+                  пароль</label
+                >
+                <p id="password-hint" class="hint">
+                  Для открытой сети оставьте поле пустым. Сохранённый пароль не
+                  отображается.
+                </p>
+                <button id="connect" class="button primary" type="button">
+                  Подключиться
+                </button>
+              </fieldset>
+            </form>
+          </details>
+        </section>
+        <section id="firmware" class="card" aria-labelledby="firmware-title">
+          <p class="eyebrow">ОБСЛУЖИВАНИЕ</p>
+          <h2 id="firmware-title">Обновление прошивки</h2>
+          <p class="hint">Текущая версия: <span id="firmware-version">—</span> · <span id="firmware-limit">Проверяем доступность OTA…</span></p>
+          <p class="hint">Выберите firmware.bin для WiFiLedController. На время записи подсветка выключится, затем контроллер перезапустится. Настройки сохранятся. Не отключайте питание до завершения.</p>
+          <form id="firmware-form">
+            <fieldset id="firmware-fields" class="plain-fieldset" disabled>
+              <label for="firmware-file">Файл прошивки (.bin)</label>
+              <input id="firmware-file" type="file" accept=".bin" required />
+              <label for="firmware-password">Пароль обновления</label>
+              <input id="firmware-password" type="password" autocomplete="off" required />
+              <p class="hint">Пароль указан в инструкции к контроллеру. Он не сохраняется в браузере.</p>
+              <button id="firmware-upload" class="button primary" type="submit">Загрузить прошивку</button>
+            </fieldset>
+          </form>
+          <progress id="firmware-progress" max="100" value="0" hidden aria-label="Загрузка прошивки"></progress>
+          <p id="firmware-result" class="hint" role="status" aria-live="polite"></p>
+          <button id="firmware-reconnect" class="button secondary" type="button" hidden>Проверить контроллер</button>
+        </section>
+        <section id="system" class="card" aria-labelledby="system-title">
+          <p class="eyebrow">УПРАВЛЕНИЕ УСТРОЙСТВОМ</p>
+          <h2 id="system-title">Система</h2>
+          <fieldset id="system-fields" class="plain-fieldset" disabled>
+            <div class="system-action">
+              <div><h3>Перезагрузка</h3><p class="hint">Сохранённые настройки и подключение Wi-Fi сохранятся. При запуске подсветка выключена. Автоматика возобновится после прогрева датчиков.</p></div>
+              <button id="system-reboot" class="button secondary" type="button">Перезагрузить</button>
+            </div>
+            <div class="divider"></div>
+            <div class="system-action">
+              <div><h3>Заводские настройки</h3><p class="hint">Полная очистка памяти настроек: Wi-Fi, режим, цвет, яркость и автоматизация. После сброса подключитесь к сети PhysTechLab-… и откройте 192.168.4.1.</p></div>
+              <button id="system-reset" class="button danger" type="button">Сбросить все настройки</button>
+            </div>
+            <div id="system-confirm" class="notice" hidden>
+              <p id="system-confirm-text"></p>
+              <div class="system-buttons">
+                <button id="system-cancel" class="button secondary" type="button">Отмена</button>
+                <button id="system-confirm-action" class="button danger" type="button">Подтвердить</button>
+              </div>
+            </div>
+          </fieldset>
+          <p id="system-result" class="hint" role="status" aria-live="polite" tabindex="-1"></p>
+          <button id="system-reconnect" class="button secondary" type="button" hidden>Проверить связь</button>
+        </section>
+        <section class="app-panel" aria-labelledby="app-title">
+          <div>
+            <h3 id="app-title">Подсветка как приложение</h3>
+            <p class="hint" id="app-status">
+              Быстрый доступ с главного экрана телефона или рабочего стола.
+            </p>
+          </div>
+          <button id="install-app" type="button" class="button secondary">
+            Добавить на экран
+          </button>
+          <details id="app-help">
+            <summary>Как добавить приложение</summary>
+            <p class="hint" id="app-instructions"></p>
+            <p class="hint">
+              Добавляйте приложение после подключения контроллера к постоянной
+              сети. Ярлык запоминает текущий адрес устройства.
+            </p>
+          </details>
+        </section>
+        <footer>
+          <span>WiFiLedController</span><span id="footer-version">v1.2.1</span
+          ><span class="developer-credit">Разработчик ООО "ФизТехЛаб" · 2026</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

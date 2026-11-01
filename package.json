@@ -1,0 +1,14 @@
+{
+  "name": "wifi-led-controller",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "preview": "node scripts/preview.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
