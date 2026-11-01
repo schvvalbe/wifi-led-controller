@@ -1,0 +1,121 @@
+name: Firmware CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: Firmware checks
+    if: github.event_name == 'pull_request' && github.base_ref == github.event.repository.default_branch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: firmware-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate release version and changelog
+        run: python scripts/ci_release.py check --new-version
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.18
+      - name: Build firmware and check OTA size
+        run: python -m platformio run -e esp07
+      - name: C++ tests
+        run: python scripts/test_native.py
+      - name: Python tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Install browser dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+      - name: Browser tests
+        env:
+          CI: 'true'
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/junit.xml
+        run: npm test -- --reporter=line,junit
+      - name: Save test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  package:
+    name: Firmware package
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Validate release version and changelog
+        run: python scripts/ci_release.py check
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.18
+      - name: Build release firmware and check OTA size
+        run: python -m platformio run -e esp07
+      - name: Package firmware
+        run: python scripts/ci_release.py package
+      - uses: actions/upload-artifact@v7
+        with:
+          name: firmware-${{ github.sha }}-${{ github.run_id }}
+          path: dist/
+          overwrite: true
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish firmware release
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    # Serialize publication of the same commit, without cancelling an upload.
+    concurrency:
+      group: firmware-release-${{ github.sha }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v8
+        with:
+          name: firmware-${{ github.sha }}-${{ github.run_id }}
+          path: dist/
+      - name: Publish assets, then release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/ci_release.py publish
+
